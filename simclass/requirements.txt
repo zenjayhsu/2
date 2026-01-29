@@ -1,0 +1,5 @@
+# 核心依赖：用于连接大模型 API (兼容 DeepSeek, Ollama, vLLM)
+openai>=1.0.0
+
+# 可选：如果您后续想把 API Key 放在 .env 文件中管理，建议安装这个
+python-dotenv
