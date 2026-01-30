@@ -49,7 +49,7 @@ class BehaviorController:
         # === 规则 3: LLM 评分逻辑 (增强版) ===
         context = self.context_mgr.get_context_str()
         
-        # [新增]：让调度器理解每个角色的功能，从而做出教学策略上的判断
+        # [保留您的详细描述]：让调度器理解每个角色的功能
         role_descriptions = """
         - Insight Sparker (引导者): 现在扮演的是一门 C 语言程序设计课堂讨论中的引导者。你对 C 语言的核心概念有深入理解（例如：指针、内存管理、函数调用机制、结构体、数组与字符串、编译与运行机制等），并且非常擅长把抽象的编程概念和底层机制转化为生活化、容易理解的类比和隐喻。
         - Critical Challenger (提问者与组织者): 你扮演的是一门 C 语言程序设计课堂讨论中的提问者与组织者。你的核心任务是连接学生发言和其他 AI 角色的输出，通过挖掘其中隐含的前提、概念跳跃和潜在矛盾，制造“有建设性的认知张力”，推动讨论从表层理解走向深层机制分析。你非常熟悉 C 语言中的关键模型与底层假设，例如：内存模型、指针与地址语义、数组退化规则、函数调用栈模型、变量生命周期与作用域规则等。你关注的是“模型适用边界”和“前提是否完整”。
@@ -91,18 +91,31 @@ class BehaviorController:
         # 打印评分结果 (保留这行很有用，可以看到谁在竞争)
         print(f"\n[控制器评分] {scores}")
 
-        # === 规则 4: Top-2 随机 ===
-        # 过滤掉不在候选名单里的 (防止 hallucination)
+        # === 规则 4: 智能阈值选择 (修改点) ===
+        # 1. 过滤无效分数并排序
         valid_scores = {k: v for k, v in scores.items() if k in candidates_for_scoring}
-        
-        if not valid_scores: # 防止为空
-            valid_scores = {name: 5 for name in candidates_for_scoring}
+        if not valid_scores: 
+            valid_scores = {name: 5 for name in candidates_for_scoring} # 兜底
 
+        # 降序排列 [(Name, Score), ...]
         sorted_agents = sorted(valid_scores.items(), key=lambda x: x[1], reverse=True)
         
-        # 取前2名 (如果只剩1个候选人，就取1个)
-        top_k = min(2, len(sorted_agents))
-        top_candidates = [x[0] for x in sorted_agents[:top_k]]
+        selected_name = ""
         
-        selected_name = random.choice(top_candidates)
+        # 2. 执行分差判断逻辑
+        if len(sorted_agents) == 1:
+            # 如果只有一个候选人（极端情况），直接选
+            selected_name = sorted_agents[0][0]
+        else:
+            top1_name, top1_score = sorted_agents[0]
+            top2_name, top2_score = sorted_agents[1]
+            
+            diff = top1_score - top2_score
+            
+            # 这里的 1 就是您设定的阈值
+            if diff <= 1:
+                selected_name = random.choice([top1_name, top2_name])
+            else:
+                selected_name = top1_name
+        
         return self.agent_map[selected_name]

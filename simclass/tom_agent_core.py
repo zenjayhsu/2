@@ -100,9 +100,9 @@ class OnlineMateAgent:
             # 构建“非直接回答”的 Prompt
             instruction = ""
             if "Insight Sparker" in self.name:
-                instruction = f"请使用**比喻或启发式提问**，引导学生进入【{target_conf['name']}】层级。不要直接给代码，要让他顿悟。"
+                instruction = f"请使用启发式比喻，帮助学生从“死记语法”走向“理解程序本质”，引导学生进入【{target_conf['name']}】层级。不要直接给代码，要让他顿悟，禁止提问。"
             else: # Challenger
-                instruction = f"请提出一个犀利的**反例或质疑**，迫使学生进行【{target_conf['name']}】层级的思考。指出他逻辑中的漏洞。"
+                instruction = f"请提出一个犀利的反例或问题，符合苏格拉底式的提问法，迫使学生进行【{target_conf['name']}】层级的思考。指出他逻辑中的漏洞。"
 
             final_prompt = f"""
             【场景】：同伴小组讨论协作学习。
